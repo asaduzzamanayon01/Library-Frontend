@@ -1879,3 +1879,412 @@
 // };
 
 // export default AddBooks;
+
+// "use client";
+// import React, { useEffect, useState } from "react";
+// import Link from "next/link";
+// import AddedBooks from "@/components/AddedBooks";
+// import { useAuth } from "@/context/AuthContext";
+// import { FetchedData } from "@/types";
+// import LikedBooks from "@/components/LikedBooks";
+
+// const Page = () => {
+//     const { isLoggedIn } = useAuth();
+//     const [userData, setUserData] = useState<FetchedData | null>(null);
+//     const [isLoading, setIsLoading] = useState(true);
+
+//     useEffect(() => {
+//         if (isLoggedIn) {
+//             // Fetch user data here
+//             fetch("http://localhost:8000/api/users", {
+//                 method: "GET",
+//                 headers: {
+//                     "Content-Type": "application/json",
+//                 },
+//                 credentials: "include", // Include cookies if needed
+//             })
+//                 .then((response) => response.json())
+//                 .then((data) => {
+//                     setUserData(data);
+//                     setIsLoading(false);
+//                 });
+//         }
+//     }, [isLoggedIn]);
+
+//     if (!isLoggedIn) {
+//         return (
+//             <div className="px-14 py-4 space-y-16">
+//                 <div className="text-xl">
+//                     You need to be logged in to view this page.
+//                 </div>
+//                 <Link href="/login">
+//                     <div className="w-36 text-center mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+//                         Go to Login
+//                     </div>
+//                 </Link>
+//             </div>
+//         );
+//     }
+
+//     if (isLoading) {
+//         return <div>Loading...</div>;
+//     }
+
+//     return (
+//         <div className="px-14 py-4 space-y-16">
+//             <div className="text-xl">Welcome, {userData?.username}</div>
+//             <div className="text-xl">Want to add a new book?</div>
+//             <Link href="/add">
+//                 <div className="w-36 text-center mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+//                     Add Books
+//                 </div>
+//             </Link>
+//             <div className="text-xl">Your Added books</div>
+//             <AddedBooks userInfo={userData?.added_books} />
+//             <div className="text-xl">Your liked books</div>
+//             <LikedBooks
+//                 liked_books={userData?.liked_books}
+//                 userId={userData?.user_id}
+//             />
+//         </div>
+//     );
+// };
+
+// export default Page;
+
+// "use client";
+// import Link from "next/link";
+// import React, { useState } from "react";
+// import { useAuth } from "@/context/AuthContext";
+// import LogoutButton from "@/components/LogoutButton";
+// import axios from "axios"; // Import axios to handle HTTP requests
+
+// const NavBar = () => {
+//     const { isLoggedIn } = useAuth();
+//     const [searchTerm, setSearchTerm] = useState("");
+//     const [searchResults, setSearchResults] = useState<any[]>([]); // Store search results
+//     const [showDropdown, setShowDropdown] = useState(false); // Control dropdown visibility
+//     // Function to handle result click
+//     const handleResultClick = () => {
+//         setSearchTerm(""); // Clear the search input field
+//         hideDropdown(); // Hide the dropdown
+//     };
+//     // Function to handle search input changes
+//     const handleSearchChange = async (
+//         e: React.ChangeEvent<HTMLInputElement>
+//     ) => {
+//         const searchQuery = e.target.value;
+//         setSearchTerm(searchQuery);
+
+//         if (searchQuery.trim() === "") {
+//             setSearchResults([]); // Clear results if input is empty
+//             setShowDropdown(false);
+//             return;
+//         }
+
+//         try {
+//             const response = await axios.get(
+//                 `http://localhost:8000/api/books?search=${searchQuery}`
+//             );
+//             setSearchResults(response.data.books);
+//             setShowDropdown(true); // Show dropdown if results are available
+//         } catch (error) {
+//             console.error("Error fetching search results:", error);
+//             setSearchResults([]);
+//             setShowDropdown(false);
+//         }
+//     };
+
+//     // Function to hide the dropdown
+//     const hideDropdown = () => setShowDropdown(false);
+
+//     return (
+//         <div>
+//             <div className="navbar p-10 bg-slate-300 rounded-b-lg">
+//                 <div className="flex-1">
+//                     <Link
+//                         href="/"
+//                         className="btn btn-ghost font-extrabold text-5xl"
+//                     >
+//                         Open Library
+//                     </Link>
+//                 </div>
+//                 {isLoggedIn && (
+//                     <div className="flex-1 underline">
+//                         <Link
+//                             href="/dashboard"
+//                             className="btn btn-ghost font-normal text-base ml-5"
+//                         >
+//                             My Dashboard
+//                         </Link>
+//                     </div>
+//                 )}
+//                 <div className="flex-none gap-2 relative">
+//                     <div className="form-control w-80">
+//                         <div className="relative">
+//                             <input
+//                                 type="text"
+//                                 value={searchTerm}
+//                                 onChange={handleSearchChange} // Trigger search on input change
+//                                 placeholder="Search"
+//                                 className="input input-bordered w-full pr-16"
+//                             />
+//                             <button className="btn btn-ghost absolute top-0 right-0 rounded-l-none">
+//                                 <svg
+//                                     xmlns="http://www.w3.org/2000/svg"
+//                                     className="h-6 w-6"
+//                                     fill="none"
+//                                     viewBox="0 0 24 24"
+//                                     stroke="currentColor"
+//                                 >
+//                                     <path
+//                                         strokeLinecap="round"
+//                                         strokeLinejoin="round"
+//                                         strokeWidth={2}
+//                                         d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+//                                     />
+//                                 </svg>
+//                             </button>
+
+//                             {/* Search results dropdown */}
+//                             {showDropdown && searchResults.length > 0 && (
+//                                 <div className="absolute top-full mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+//                                     {searchResults.map((book) => (
+//                                         <Link
+//                                             href={`/details/${book.book_id}`}
+//                                             key={book.book_id}
+//                                             onClick={handleResultClick} // Hide dropdown when a result is clicked
+//                                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+//                                         >
+//                                             {book.title}
+//                                         </Link>
+//                                     ))}
+//                                 </div>
+//                             )}
+//                         </div>
+//                     </div>
+
+//                     {isLoggedIn ? (
+//                         <LogoutButton />
+//                     ) : (
+//                         <>
+//                             <Link
+//                                 href="/registration"
+//                                 className="btn bg-blue-500 text-white"
+//                             >
+//                                 Sign Up
+//                             </Link>
+//                             <Link
+//                                 href="/login"
+//                                 className="btn bg-green-500 text-white"
+//                             >
+//                                 Login
+//                             </Link>
+//                         </>
+//                     )}
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default NavBar;
+
+// "use client";
+// import React, { useEffect, useState, useCallback, useRef } from "react";
+// import { fetchGenres } from "@/utils/requests";
+// import MostRecentBooks from "@/components/MostRecent";
+// import MostLikedBooks from "@/components/MostLiked";
+// import BookContainer from "@/components/BookContainer";
+// import type { TGenre } from "@/types";
+// import LoadingSpinner from "@/components/LoadingSpinner";
+// import { useRefetch } from "@/context/useRefetch"; // Import the custom hook
+
+// const Page = () => {
+//     const [genres, setGenres] = useState<TGenre[]>([]);
+//     const [genrePage, setGenrePage] = useState(1);
+//     const [hasMoreGenres, setHasMoreGenres] = useState(true);
+//     const [loadingGenres, setLoadingGenres] = useState(false);
+//     const initialLoadDone = useRef(false);
+//     const { refetchTrigger, triggerRefetch } = useRefetch(); // Use the custom hook
+
+//     const loadGenres = useCallback(
+//         async (isInitialLoad: boolean = false) => {
+//             if (loadingGenres || (!hasMoreGenres && !isInitialLoad)) return;
+
+//             setLoadingGenres(true);
+//             const limit = 5;
+//             const offset = isInitialLoad ? 0 : genres.length;
+
+//             try {
+//                 const { genres: newGenres, hasMoreGenres: moreGenres } =
+//                     await fetchGenres(limit, offset);
+//                 setGenres((prevGenres) => [...prevGenres, ...newGenres]);
+//                 setHasMoreGenres(moreGenres);
+//                 if (!isInitialLoad) {
+//                     setGenrePage((prevPage) => prevPage + 1);
+//                 }
+//             } catch (error) {
+//                 console.error("Failed to fetch genres:", error);
+//             } finally {
+//                 setLoadingGenres(false);
+//             }
+//         },
+//         [genres.length, hasMoreGenres, loadingGenres]
+//     );
+
+//     useEffect(() => {
+//         if (!initialLoadDone.current) {
+//             loadGenres(true);
+//             initialLoadDone.current = true;
+//         }
+//     }, [loadGenres]);
+
+//     // Add this effect to refetch data when refetchTrigger changes
+//     useEffect(() => {
+//         if (initialLoadDone.current) {
+//             setGenres([]);
+//             setGenrePage(1);
+//             setHasMoreGenres(true);
+//             loadGenres(true);
+//         }
+//     }, [refetchTrigger, loadGenres]);
+
+//     return (
+//         <div>
+//             <MostRecentBooks refetchTrigger={refetchTrigger} />
+//             <MostLikedBooks refetchTrigger={refetchTrigger} />
+//             {genres.map((genre) => (
+//                 <BookContainer
+//                     key={genre.genre_id}
+//                     genre_id={genre.genre_id}
+//                     genre={genre.genre_name}
+//                     refetchTrigger={refetchTrigger}
+//                 />
+//             ))}
+
+//             {hasMoreGenres && (
+//                 <div style={{ textAlign: "center", marginTop: "20px" }}>
+//                     <button
+//                         className="btn text-center mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+//                         onClick={() => loadGenres()}
+//                         disabled={loadingGenres}
+//                     >
+//                         {loadingGenres ? (
+//                             <LoadingSpinner />
+//                         ) : (
+//                             "Load More Genres"
+//                         )}
+//                     </button>
+//                 </div>
+//             )}
+//         </div>
+//     );
+// };
+
+// export default Page;
+
+// "use client";
+// import React, { useEffect, useState } from "react";
+// import Book from "@/components/Book";
+// import RightIcon from "@/components/RightIcon";
+// import LeftIcon from "@/components/LeftIcon";
+// import type { TBook } from "@/types";
+// import { fetchBooks } from "@/utils/requests";
+// import LoadingSpinner from "@/components/LoadingSpinner";
+
+// interface HomePageProps {
+//     genre_id: number;
+//     genre: string;
+// }
+
+// const BookContainer: React.FC<HomePageProps> = ({ genre, genre_id }) => {
+//     const [books, setBooks] = useState<TBook[]>([]);
+//     const [currentIndex, setCurrentIndex] = useState(0);
+//     const [page, setPage] = useState(1);
+//     const [loading, setLoading] = useState(false);
+//     const [moreBooksAvailable, setMoreBooksAvailable] = useState(true);
+//     const [visibleBooks, setVisibleBooks] = useState<TBook[]>([]);
+
+//     const fetchNextBooks = async () => {
+//         setLoading(true);
+
+//         try {
+//             const { books: newBooks, hasMoreBooks: moreBooks } =
+//                 await fetchBooks(page, genre_id);
+
+//             if (newBooks.length > 0) {
+//                 setBooks((prevBooks) => [...prevBooks, ...newBooks]);
+//                 setPage((prevPage) => prevPage + 1);
+//                 setMoreBooksAvailable(moreBooks);
+//             } else {
+//                 setMoreBooksAvailable(false);
+//             }
+//         } catch (error) {
+//             console.error(
+//                 `Failed to fetch books for genre ${genre_id}:`,
+//                 error
+//             );
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     useEffect(() => {
+//         fetchNextBooks();
+//     }, []); // fetch books when the component mounts
+
+//     useEffect(() => {
+//         setVisibleBooks(
+//             () => books.slice(currentIndex, currentIndex + 5) || []
+//         );
+//     }, [currentIndex, books]);
+
+//     const handleNext = async () => {
+//         if (currentIndex + 5 >= books.length && moreBooksAvailable) {
+//             await fetchNextBooks();
+//         }
+//         setCurrentIndex((prevIndex) => prevIndex + 5);
+//     };
+
+//     const handlePrev = () => {
+//         if (currentIndex > 0) {
+//             setCurrentIndex((prevIndex) => prevIndex - 5);
+//         }
+//     };
+
+//     return (
+//         <div>
+//             <div className="m-4">
+//                 <h1 className="text-3xl my-20 ml-4 font-bold">{genre}</h1>
+//                 <div className="flex gap-5 justify-center items-center my-24 h-64">
+//                     {!loading && (
+//                         <button
+//                             onClick={handlePrev}
+//                             disabled={currentIndex === 0}
+//                         >
+//                             <LeftIcon className="w-10 h-10" />
+//                         </button>
+//                     )}
+//                     {loading ? (
+//                         <LoadingSpinner />
+//                     ) : (
+//                         visibleBooks.map((book, index) => (
+//                             <Book key={book.book_id || index} book={book} />
+//                         ))
+//                     )}
+//                     {!loading && (
+//                         <button
+//                             onClick={handleNext}
+//                             disabled={loading || !moreBooksAvailable}
+//                         >
+//                             <RightIcon className="w-10 h-10" />
+//                         </button>
+//                     )}
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default BookContainer;

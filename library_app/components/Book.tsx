@@ -55,7 +55,7 @@ const Book: React.FC<{ book: TBook }> = ({ book }) => {
                 )}
             </Link>
             <div className="flex flex-col gap-3">
-                <div className="text-base ">{book.title}</div>
+                <div className="text-sm ">{book.title}</div>
                 <div className="flex gap-4">
                     <div className="flex justify-center items-center">
                         <div className="">{dislikes}</div>

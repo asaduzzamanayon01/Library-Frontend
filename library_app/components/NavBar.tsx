@@ -1,48 +1,69 @@
 "use client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import LogoutButton from "@/components/LogoutButton";
-import axios from "axios"; // Import axios to handle HTTP requests
+import axios from "axios";
+import { debounce } from "lodash";
 
 const NavBar = () => {
     const { isLoggedIn } = useAuth();
     const [searchTerm, setSearchTerm] = useState("");
-    const [searchResults, setSearchResults] = useState<any[]>([]); // Store search results
-    const [showDropdown, setShowDropdown] = useState(false); // Control dropdown visibility
-    // Function to handle result click
-    const handleResultClick = () => {
-        setSearchTerm(""); // Clear the search input field
-        hideDropdown(); // Hide the dropdown
-    };
-    // Function to handle search input changes
-    const handleSearchChange = async (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const debouncedSearch = useCallback(
+        debounce(async (query: string) => {
+            if (query.trim() === "") {
+                setSearchResults([]);
+                setShowDropdown(false);
+                return;
+            }
+
+            try {
+                const response = await axios.get(
+                    `http://localhost:8000/api/books?search=${query}`
+                );
+                setSearchResults(response.data.books);
+                setShowDropdown(true);
+            } catch (error) {
+                console.error("Error fetching search results:", error);
+                setSearchResults([]);
+                setShowDropdown(false);
+            }
+        }, 300),
+        []
+    );
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const searchQuery = e.target.value;
         setSearchTerm(searchQuery);
-
-        if (searchQuery.trim() === "") {
-            setSearchResults([]); // Clear results if input is empty
-            setShowDropdown(false);
-            return;
-        }
-
-        try {
-            const response = await axios.get(
-                `http://localhost:8000/api/books?search=${searchQuery}`
-            );
-            setSearchResults(response.data.books);
-            setShowDropdown(true); // Show dropdown if results are available
-        } catch (error) {
-            console.error("Error fetching search results:", error);
-            setSearchResults([]);
-            setShowDropdown(false);
-        }
+        debouncedSearch(searchQuery);
     };
 
-    // Function to hide the dropdown
+    const handleResultClick = () => {
+        setSearchTerm("");
+        hideDropdown();
+    };
+
     const hideDropdown = () => setShowDropdown(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node)
+            ) {
+                hideDropdown();
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     return (
         <div>
@@ -52,7 +73,7 @@ const NavBar = () => {
                         href="/"
                         className="btn btn-ghost font-extrabold text-5xl"
                     >
-                        Open Library
+                        OLibrary
                     </Link>
                 </div>
                 {isLoggedIn && (
@@ -67,11 +88,11 @@ const NavBar = () => {
                 )}
                 <div className="flex-none gap-2 relative">
                     <div className="form-control w-80">
-                        <div className="relative">
+                        <div className="relative" ref={dropdownRef}>
                             <input
                                 type="text"
                                 value={searchTerm}
-                                onChange={handleSearchChange} // Trigger search on input change
+                                onChange={handleSearchChange}
                                 placeholder="Search"
                                 className="input input-bordered w-full pr-16"
                             />
@@ -92,17 +113,34 @@ const NavBar = () => {
                                 </svg>
                             </button>
 
-                            {/* Search results dropdown */}
                             {showDropdown && searchResults.length > 0 && (
-                                <div className="absolute top-full mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+                                <div className="absolute top-full mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
                                     {searchResults.map((book) => (
                                         <Link
                                             href={`/details/${book.book_id}`}
                                             key={book.book_id}
-                                            onClick={handleResultClick} // Hide dropdown when a result is clicked
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+                                            onClick={handleResultClick}
+                                            className="flex items-center px-4 py-2 hover:bg-gray-100"
                                         >
-                                            {book.title}
+                                            <div className="flex-shrink-0 w-12 h-16 mr-4">
+                                                <img
+                                                    src={
+                                                        book.cover_img &&
+                                                        book.cover_img.startsWith(
+                                                            "http"
+                                                        )
+                                                            ? book.cover_img
+                                                            : `http://localhost:8000/${book.cover_img}`
+                                                    }
+                                                    alt={book.title}
+                                                    className="object-cover rounded-xl w-12 h-16"
+                                                />
+                                            </div>
+                                            <div className="flex-grow">
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {book.title}
+                                                </p>
+                                            </div>
                                         </Link>
                                     ))}
                                 </div>

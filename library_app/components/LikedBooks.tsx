@@ -73,12 +73,12 @@ const LikedBooks = () => {
 
     return (
         <div>
-            {likedBooks.length === 0 ? (
-                <p></p>
+            {likedBooks?.length === 0 ? (
+                <p>no books</p>
             ) : (
                 <ul className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        {likedBooks.map((book, index) => (
+                        {likedBooks?.map((book, index) => (
                             <li key={index} className="flex space-x-4">
                                 <div
                                     onClick={() =>
@@ -88,6 +88,7 @@ const LikedBooks = () => {
                                 >
                                     <img
                                         src={
+                                            book.cover_img &&
                                             book.cover_img.startsWith("http")
                                                 ? book.cover_img
                                                 : `http://localhost:8000/${book.cover_img}`

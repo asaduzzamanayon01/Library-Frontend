@@ -8,8 +8,8 @@ import { fetchBooks } from "@/utils/requests";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface HomePageProps {
-    genre: string;
     genre_id: number;
+    genre: string;
 }
 
 const BookContainer: React.FC<HomePageProps> = ({ genre, genre_id }) => {
@@ -20,16 +20,20 @@ const BookContainer: React.FC<HomePageProps> = ({ genre, genre_id }) => {
     const [moreBooksAvailable, setMoreBooksAvailable] = useState(true);
     const [visibleBooks, setVisibleBooks] = useState<TBook[]>([]);
 
-    const fetchNextBooks = async () => {
+    const fetchNextBooks = async (reset: boolean = false) => {
         setLoading(true);
 
         try {
             const { books: newBooks, hasMoreBooks: moreBooks } =
-                await fetchBooks(page, genre_id);
+                await fetchBooks(reset ? 1 : page, genre_id);
 
             if (newBooks.length > 0) {
-                setBooks((prevBooks) => [...prevBooks, ...newBooks]);
-                setPage((prevPage) => prevPage + 1);
+                setBooks(
+                    reset
+                        ? newBooks
+                        : (prevBooks) => [...prevBooks, ...newBooks]
+                );
+                setPage(reset ? 2 : (prevPage) => prevPage + 1);
                 setMoreBooksAvailable(moreBooks);
             } else {
                 setMoreBooksAvailable(false);
@@ -70,8 +74,8 @@ const BookContainer: React.FC<HomePageProps> = ({ genre, genre_id }) => {
     return (
         <div>
             <div className="m-4">
-                <h1 className="text-3xl mb-6 ml-4 font-bold">{genre}</h1>
-                <div className="flex gap-5 justify-center items-center mb-20">
+                <h1 className="text-3xl my-20 ml-4 font-bold">{genre}</h1>
+                <div className="flex gap-5 justify-center items-center my-24 h-64">
                     {!loading && (
                         <button
                             onClick={handlePrev}

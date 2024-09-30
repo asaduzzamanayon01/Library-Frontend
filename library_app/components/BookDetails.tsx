@@ -32,7 +32,11 @@ const BookDetails: React.FC<BookDetailsProps> = ({ bookId }) => {
                     throw new Error("Failed to fetch book details");
                 }
                 const data = await res.json();
-                const bookData = data.books[0];
+                //general
+                // const bookData = data.books[0];
+
+                //for elasticsearch
+                const bookData = data.book;
                 const likesData = data.likes;
                 const dislikesData = data.dislikes;
 
@@ -179,7 +183,7 @@ const BookDetails: React.FC<BookDetailsProps> = ({ bookId }) => {
     }
 
     return (
-        <div className="flex gap-10 p-14">
+        <div className="flex gap-10 p-14 h-[750px]">
             <div className="flex flex-col gap-4">
                 <div className="w-96 h-full ">
                     {book.cover_img ? (
